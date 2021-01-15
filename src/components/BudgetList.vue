@@ -6,25 +6,26 @@
         type="primary"
         size="medium"
         @click="incomesSortHandler"
-        >Incomes</ElButton>
+        >Incomes</ElButton
+      >
       <ElButton
         class="sort-button"
         type="primary"
         size="medium"
         @click="outcomesSortHandler"
-        >Outcomes</ElButton>
+        >Outcomes</ElButton
+      >
       <ElButton
         class="sort-button"
         type="primary"
         size="medium"
-        @click="showAll">All</ElButton>
+        @click="showAll"
+        >All</ElButton
+      >
     </div>
     <ElCard :header="header">
       <template v-if="!isEmpty">
-        <BudgetListItem
-          :visibleItems="visibleItems"
-          :filter="filter"
-          @deleteItem="onDeleteItem" />
+        <BudgetListItem />
       </template>
       <ElAlert v-else type="info" :title="emptyTitle" :closable="false" />
     </ElCard>
@@ -32,46 +33,37 @@
 </template>
 
 <script>
-import BudgetListItem from '@/components/BudgetListItem';
+import BudgetListItem from "@/components/BudgetListItem";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
-  name: 'BudgetList',
+  name: "BudgetList",
   components: {
     BudgetListItem,
   },
-  props: {
-    visibleItems: {
-      type: Object,
-      default: () => ({}),
-    },
-    filter: {
-      type: String,
-    },
-  },
   data: () => ({
-    header: 'Budget List',
-    emptyTitle: 'Empty List',
+    header: "Budget List",
+    emptyTitle: "Empty List",
   }),
   computed: {
+    ...mapGetters("costs", ["visibleCosts", "filterStr"]),
     isEmpty() {
-      return !Object.keys(this.visibleItems).length
-    }
+      return !Object.keys(this.visibleCosts).length;
+    },
   },
   methods: {
-    onDeleteItem(id, filter) {
-      this.$emit('onDeleteItem', id, filter);
-    },
+    ...mapActions("costs", ["showAllCosts", "onFilterItems"]),
     incomesSortHandler() {
-      this.$emit('sortByIncome', 'incomes');
+      this.onFilterItems("INCOME");
     },
     outcomesSortHandler() {
-      this.$emit('sortByOutcome', 'outcomes');
+      this.onFilterItems("OUTCOME");
     },
     showAll() {
-      this.$emit('showAll', 'all');
-    }
+      this.showAllCosts();
+    },
   },
-}
+};
 </script>
 
 <style scoped>

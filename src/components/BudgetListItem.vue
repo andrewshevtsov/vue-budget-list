@@ -1,15 +1,14 @@
 <template>
   <div>
-    <div class="list-item" v-for="(item, prop) in visibleItems" :key="prop">
+    <div class="list-item" v-for="(item, prop) in visibleCosts" :key="prop">
       <span class="budget-comment">{{ item.comment }}</span>
-      <span
-        class="budget-value"
-        v-bind:class="budgetValueColor(item)"
-      >
+      <span class="budget-value" v-bind:class="budgetValueColor(item)">
         {{ isNegativeValueOrNot(item) }}
       </span>
       <i v-bind:class="itemIcon(item)"></i>
-      <ElButton type="danger" size="mini" @click="dialogVisible = true">Delete</ElButton>
+      <ElButton type="danger" size="mini" @click="openDeleteDialog(item.id)"
+        >Delete</ElButton
+      >
 
       <ElDialog
         title="Deleting budget item"
@@ -20,37 +19,44 @@
         <span class="dialog-title">Are you sure to delete this item?</span>
         <span slot="footer" class="dialog-footer">
           <ElButton @click="dialogVisible = false">Cancel</ElButton>
-          <ElButton type="danger" @click="deleteItem(item.id, filter)">Confirm</ElButton>
+          <ElButton type="danger" @click="deleteItem(filterStr)"
+            >Confirm</ElButton
+          >
         </span>
       </ElDialog>
     </div>
-
   </div>
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
+
 export default {
-  name: 'BudgetListItem',
-  props: {
-    visibleItems: {
-      type: Object,
-      default: () => ({}),
-    },
-    filter: {
-      type: String
-    }
+  name: "BudgetListItem",
+  computed: {
+    ...mapGetters("costs", ["filterStr", "visibleCosts", "delItem"]),
   },
   data: () => ({
     dialogVisible: false,
   }),
   methods: {
-    deleteItem(id, filter) {
-      this.$emit('deleteItem', id, filter);
+    ...mapActions("costs", [
+      "deleteCost",
+      "onFilterItems",
+      "deleteCurrentItemId",
+    ]),
+    openDeleteDialog(id) {
+      this.deleteCurrentItemId(id);
+      this.dialogVisible = true;
+    },
+    deleteItem(filter) {
+      this.deleteCost(this.delItem);
+      this.onFilterItems(filter);
       this.dialogVisible = false;
     },
     isNegativeValueOrNot(item) {
-      if ((item.type === 'OUTCOME')) {
-        let newItemValue = '';
+      if (item.type === "OUTCOME") {
+        let newItemValue = "";
         const charCodeSymbol = item.value.toString()[0].charCodeAt();
         if (charCodeSymbol === 45) {
           newItemValue = item.value.toString().slice(1);
@@ -63,28 +69,28 @@ export default {
       }
     },
     handleClose(done) {
-      this.$confirm('Are you sure to close this dialog?')
+      this.$confirm("Are you sure to close this dialog?")
         // eslint-disable-next-line no-unused-vars
-        .then(_ => {
-            done();
-          })
+        .then((_) => {
+          done();
+        })
         // eslint-disable-next-line no-unused-vars
-        .catch(_ => {});
+        .catch((_) => {});
     },
     itemIcon(item) {
       return {
-        'el-icon-top': item.type === 'OUTCOME',
-        'el-icon-bottom': item.type === 'INCOME',
-      }
+        "el-icon-top": item.type === "OUTCOME",
+        "el-icon-bottom": item.type === "INCOME",
+      };
     },
     budgetValueColor(item) {
       return {
-        'text-red': item.type === 'OUTCOME',
-        'text-green': item.type === 'INCOME',
-      }
+        "text-red": item.type === "OUTCOME",
+        "text-green": item.type === "INCOME",
+      };
     },
   },
-}
+};
 </script>
 
 <style scoped>
